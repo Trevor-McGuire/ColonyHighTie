@@ -204,6 +204,7 @@ function adjustForControlPanel() {
   const controlPanelHeight = totalHeight - visibleHeight;
   if (controlPanelHeight > 0) {
     canvas.style.marginBottom = controlPanelHeight + "px";
+    canvas.style.backgroudColor = "red";
   } else {
     canvas.style.marginBottom = "0px";
   }
