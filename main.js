@@ -204,9 +204,10 @@ function adjustForControlPanel() {
   const controlPanelHeight = totalHeight - visibleHeight;
   if (controlPanelHeight > 0) {
     canvas.style.marginBottom = controlPanelHeight + "px";
-    canvas.style.backgroudColor = "red";
+    canvas.style.border = "1px solid black";
   } else {
     canvas.style.marginBottom = "0px";
+    canvas.style.border = '1px solid red';
   }
 }
 window.addEventListener("load", adjustForControlPanel);
