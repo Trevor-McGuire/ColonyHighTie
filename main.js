@@ -199,16 +199,34 @@ const drawBoxes = (ctx, boxes) => {
 function adjustForControlPanel() {
   // get canvas element
   const canvas = document.getElementById("canvas");
+
+  // Use visualViewport.height on mobile for better accuracy
   const totalHeight = document.documentElement.clientHeight;
   const visibleHeight = window.innerHeight;
   const controlPanelHeight = totalHeight - visibleHeight;
-  if (controlPanelHeight > 0) {
-    canvas.style.marginBottom = controlPanelHeight + "px";
+
+  // For mobile browsers, use visualViewport.height to better detect visible area
+  const mobileVisibleHeight = window.visualViewport ? window.visualViewport.height : visibleHeight;
+  const mobileControlPanelHeight = totalHeight - mobileVisibleHeight;
+
+  console.log("totalHeight:", totalHeight);
+  console.log("visibleHeight:", visibleHeight);
+  console.log("controlPanelHeight:", controlPanelHeight);
+  console.log("mobileVisibleHeight:", mobileVisibleHeight);
+  console.log("mobileControlPanelHeight:", mobileControlPanelHeight);
+
+  // Apply margin based on the correct height detection
+  const finalControlPanelHeight = mobileControlPanelHeight > 0 ? mobileControlPanelHeight : controlPanelHeight;
+
+  if (finalControlPanelHeight > 0) {
+    canvas.style.marginBottom = finalControlPanelHeight + "px";
     canvas.style.border = "1px solid black";
   } else {
     canvas.style.marginBottom = "0px";
     canvas.style.border = '1px solid red';
   }
 }
+
 window.addEventListener("load", adjustForControlPanel);
 window.addEventListener("resize", adjustForControlPanel);
+
