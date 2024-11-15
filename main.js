@@ -197,51 +197,23 @@ const drawBoxes = (ctx, boxes) => {
 };
 
 function adjustForControlPanel() {
-  // Get canvas element
   const canvas = document.getElementById("canvas");
+  const windowHeight = window.innerHeight;
+  const documentHeight = document.documentElement.clientHeight;
   
-  // Check for visualViewport support
-  if (window.visualViewport) {
-    const totalHeight = document.documentElement.clientHeight;
-    const visualHeight = window.visualViewport.height;  // This should give the visible area
-    const controlPanelHeight = totalHeight - visualHeight;
+  // We assume the control panel appears only if windowHeight is smaller than documentHeight
+  const controlPanelHeight = documentHeight - windowHeight;
 
-    console.log("totalHeight:", totalHeight);
-    console.log("visualViewport.height:", visualHeight);
-    console.log("controlPanelHeight:", controlPanelHeight);
-
-    if (controlPanelHeight > 0) {
-      // Adjust the canvas margin bottom to match the control panel height
-      canvas.style.marginBottom = controlPanelHeight + "px";
-      canvas.style.border = "1px solid black";
-    } else {
-      canvas.style.marginBottom = "0px";
-      canvas.style.border = '1px solid red';
-    }
+  // Add margin if control panel height is greater than 0
+  if (controlPanelHeight > 0) {
+    canvas.style.marginBottom = controlPanelHeight + "px";
+    canvas.style.border = "1px solid black";  // Confirm if margin is working
   } else {
-    console.log("visualViewport not available, using window.innerHeight");
-    const totalHeight = document.documentElement.clientHeight;
-    const visibleHeight = window.innerHeight; // Use window.innerHeight as fallback
-    const controlPanelHeight = totalHeight - visibleHeight;
-    console.log("totalHeight:", totalHeight);
-    console.log("visibleHeight:", visibleHeight);
-    console.log("controlPanelHeight:", controlPanelHeight);
-    
-    // Apply margin if control panel height detected
-    if (controlPanelHeight > 0) {
-      canvas.style.marginBottom = controlPanelHeight + "px";
-      canvas.style.border = "1px solid black";
-    } else {
-      canvas.style.marginBottom = "0px";
-      canvas.style.border = '1px solid red';
-    }
+    canvas.style.marginBottom = "0px";
+    canvas.style.border = "1px solid red";  // Use red border for debugging
   }
 }
 
 window.addEventListener("load", adjustForControlPanel);
 window.addEventListener("resize", adjustForControlPanel);
-
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', adjustForControlPanel);
-}
 
