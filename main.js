@@ -197,13 +197,15 @@ const drawBoxes = (ctx, boxes) => {
 };
 
 function adjustForControlPanel() {
+  // get canvas element
+  const canvas = document.getElementById("canvas");
   const totalHeight = document.documentElement.clientHeight;
   const visibleHeight = window.innerHeight;
   const controlPanelHeight = totalHeight - visibleHeight;
   if (controlPanelHeight > 0) {
-    document.body.style.marginBottom = controlPanelHeight + "px";
+    canvas.style.marginBottom = controlPanelHeight + "px";
   } else {
-    document.body.style.marginBottom = "0";
+    canvas.style.marginBottom = "0px";
   }
 }
 window.addEventListener("load", adjustForControlPanel);
