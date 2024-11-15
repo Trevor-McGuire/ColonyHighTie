@@ -33,10 +33,10 @@ const populateMatrix = ({ pLen, pWid, bLen, bWid }) => {
   let matrix = [];
   let temp = [];
 
-  temp[0] = pLen
-  temp[1] = pWid
-  temp[2] = Math.max(bLen, bWid)
-  temp[3] = Math.min(bLen, bWid)
+  temp[0] = pLen;
+  temp[1] = pWid;
+  temp[2] = Math.max(bLen, bWid);
+  temp[3] = Math.min(bLen, bWid);
   temp[4] = null; // Math.floor(temp[0] / temp[3]);
   temp[5] = Math.floor(temp[1] / temp[2]);
   temp[6] = null; // Math.floor((temp[0] - temp[4] * temp[3]) / temp[2]);
@@ -88,7 +88,6 @@ const findres = (matrix) => {
   return res;
 };
 
-
 const initializeCanvas = () => {
   const canEl = document.getElementById("canvas");
   const ctx = canEl.getContext("2d");
@@ -103,7 +102,7 @@ const generateBoxes = (res) => {
   let [pX, pY, bMax, bMin, minCols, maxRows, maxCols, minRows] = res;
 
   const boxes = [];
-  
+
   // Draw the pallet outline
   boxes.push({
     cx: pX / 2,
@@ -152,7 +151,7 @@ const scaleAndCenterBoxes = (boxes, res, canWd, canHt) => {
   const offsetY = (canHt - pY * scale) / 2;
 
   // Create a deep copy of the boxes array to avoid modifying the original
-  const scaledBoxes = boxes.map(box => ({ ...box }));
+  const scaledBoxes = boxes.map((box) => ({ ...box }));
 
   scaledBoxes.forEach((box) => {
     box.cx = box.cx * scale + offsetX;
@@ -196,3 +195,16 @@ const drawBoxes = (ctx, boxes) => {
     });
   };
 };
+
+function adjustForControlPanel() {
+  const totalHeight = document.documentElement.clientHeight;
+  const visibleHeight = window.innerHeight;
+  const controlPanelHeight = totalHeight - visibleHeight;
+  if (controlPanelHeight > 0) {
+    document.body.style.marginBottom = controlPanelHeight + "px";
+  } else {
+    document.body.style.marginBottom = "0";
+  }
+}
+window.addEventListener("load", adjustForControlPanel);
+window.addEventListener("resize", adjustForControlPanel);
