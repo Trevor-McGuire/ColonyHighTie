@@ -217,3 +217,17 @@ function adjustForControlPanel() {
 window.addEventListener("load", adjustForControlPanel);
 window.addEventListener("resize", adjustForControlPanel);
 
+function resizeCanvas() {
+  const canvas = document.getElementById('canvas');
+
+  // Get the actual display size of the canvas (CSS size)
+  const canvasWidth = canvas.offsetWidth;
+  const canvasHeight = canvas.offsetHeight;
+
+  // Set the internal resolution of the canvas
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+}
+
+window.addEventListener('load', resizeCanvas);
+window.addEventListener('resize', resizeCanvas);
