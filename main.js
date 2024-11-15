@@ -1,133 +1,46 @@
-/*
-this is the main file for the pallet optimizer
-it will handle all the logic and event listeners
-and will call helper functions to do the heavy lifting
-
-add event listeners (to run main function)
-
-run main function (helper functions)
-  get inputs
-  calculate theoretical max boxes
-  calculate needed orientation checks
-  populate matrix
-  find most efficient configuration
-  draw the pallet
-*/
-
-//
-// assign variables to the input/button/canvas elements on load
-//
-
-let palletLengthElement,
-  palletWidthElement,
-  boxLengthElement,
-  boxWidthElement,
-  submitButton,
-  canvas;
-
 document.addEventListener("DOMContentLoaded", () => {
-  palletLengthElement = document.getElementById("pallet-length");
-  palletWidthElement = document.getElementById("pallet-width");
-  boxLengthElement = document.getElementById("box-length");
-  boxWidthElement = document.getElementById("box-width");
-  buttonElement = document.getElementById("submit");
-  canvasElement = document.getElementById("canvas");
-  // console.log("loaded elements");
+  document.getElementById("pallet-length").addEventListener("input", main);
+  document.getElementById("pallet-width").addEventListener("input", main);
+  document.getElementById("box-length").addEventListener("input", main);
+  document.getElementById("box-width").addEventListener("input", main);
+  document.getElementById("submit").addEventListener("click", main);
 });
 
-//
-// add event listeners (to run main function)
-//
+function main(e) {
+  e.preventDefault();
+  let inputs = getInputs();
+  let matrix = populateMatrix(inputs);
+  let res = findres(matrix);
+  const { ctx, canWd, canHt } = initializeCanvas();
 
-document.addEventListener("DOMContentLoaded", () => {
-  palletLengthElement.addEventListener("input", main);
-  palletWidthElement.addEventListener("input", main);
-  boxLengthElement.addEventListener("input", main);
-  boxWidthElement.addEventListener("input", main);
-  buttonElement.addEventListener("click", main);
-  // console.log("added event listeners");
-});
+  const boxes = generateBoxes(res);
+  console.log("Inputs:", inputs);
+  console.log("Before scaling (in inches):", boxes);
 
-//
-// Main function
-//
-
-function main() {
-  // console.log("running main function");
-  getInputs();
-  calculateMaxBoxes();
-  populateMatrix();
-  findMostEfficientConfig();
-  drawConfig();
-  console.log("main function complete");
+  const scaledBoxes = scaleAndCenterBoxes(boxes, res, canWd, canHt);
+  drawBoxes(ctx, scaledBoxes);
 }
-
-//
-// Helper functions
-//
-
-// get inputs
-
-let palletLength, palletWidth, boxLength, boxWidth;
 
 function getInputs() {
-  palletLength = palletLengthElement.value;
-  palletWidth = palletWidthElement.value;
-  boxLength = boxLengthElement.value;
-  boxWidth = boxWidthElement.value;
-
-  // console.log(
-  //   "inputs Received:",
-  //   palletLength,
-  //   palletWidth,
-  //   boxLength,
-  //   boxWidth
-  // );
+  let pLen = document.getElementById("pallet-length").value;
+  let pWid = document.getElementById("pallet-width").value;
+  let bLen = document.getElementById("box-length").value;
+  let bWid = document.getElementById("box-width").value;
+  if (pLen <= 0) pLen = 1;
+  if (pWid <= 0) pWid = 1;
+  if (bLen <= 0) bLen = 1;
+  if (bLen <= 0) bLen = 1;
+  return { pLen, pWid, bLen, bWid };
 }
 
-// calculate theoretical max boxes
-
-let maxBoxes;
-
-function calculateMaxBoxes() {
-  // console.log("calculating max boxes:");
-  palletArea = palletLength * palletWidth;
-  boxArea = boxLength * boxWidth;
-  maxBoxes = palletArea / boxArea;
-  console.log("max boxes calculated:", maxBoxes);
-}
-
-//
-// populate matrix
-//
-
-/*
-the matrix holds all the pallet and box data
-each calculation will be stored in the matrix
-[
-  [0]palletX,
-  [1]palletY,
-  [2]boxMax,
-  [3]boxMin,
-  [4]palletX/boxMin,
-  [5]palletY/boxMax,
-  [6](palletX-[4]*boxMin)/boxMax,
-  [7]palletY/boxMin,
-  [8]TotalBoxes
-]
-*/
-
-let matrix = [];
-
-const populateMatrix = () => {
-  console.log("populating matrix");
-  // temp template for first pallet orientation
-  matrix = [];
+const populateMatrix = ({ pLen, pWid, bLen, bWid }) => {
+  let matrix = [];
   let temp = [];
-  temp[0] = palletLength;
-  temp[1] = palletWidth;
-  temp[2] = Math.max(boxLength, boxWidth);
-  temp[3] = Math.min(boxLength, boxWidth);
+
+  temp[0] = pLen
+  temp[1] = pWid
+  temp[2] = Math.max(bLen, bWid)
+  temp[3] = Math.min(bLen, bWid)
   temp[4] = null; // Math.floor(temp[0] / temp[3]);
   temp[5] = Math.floor(temp[1] / temp[2]);
   temp[6] = null; // Math.floor((temp[0] - temp[4] * temp[3]) / temp[2]);
@@ -145,10 +58,10 @@ const populateMatrix = () => {
   }
 
   // adjust temp for rotated pallet orientation
-  temp[0] = palletWidth;
-  temp[1] = palletLength;
-  temp[2] = Math.max(boxLength, boxWidth);
-  temp[3] = Math.min(boxLength, boxWidth);
+  temp[0] = pWid;
+  temp[1] = pLen;
+  temp[2] = Math.max(bLen, bWid);
+  temp[3] = Math.min(bLen, bWid);
   temp[4] = null; // Math.floor(temp[0] / temp[3]);
   temp[5] = Math.floor(temp[1] / temp[2]);
   temp[6] = null; // Math.floor((temp[0] - temp[4] * temp[3]) / temp[2]);
@@ -164,124 +77,126 @@ const populateMatrix = () => {
     matrixItem[8] = i * temp[5] + matrixItem[6] * temp[7];
     matrix.push(matrixItem);
   }
-
-  console.log("matrix populated:", matrix);
+  return matrix;
 };
 
-// 
-// find most efficient configuration
-//
-
-let mostEfficientConfig;
-
-const findMostEfficientConfig = () => {
-  console.log("finding most efficient configuration");
+const findres = (matrix) => {
   let max = 0;
-  mostEfficientConfig = [];
+  let res = [];
   for (let i = 0; i < matrix.length; i++) {
     if (matrix[i][8] > max) {
-      mostEfficientConfig = matrix[i];
+      res = matrix[i];
       max = matrix[i][8];
     }
   }
-  console.log("most efficient configuration found:", mostEfficientConfig);
+  return res;
 };
 
-//
-// draw the pallet
-//
 
-/*
-Draw config will take the:
-  Canvas height
-  Canvas width
-  mostEfficientConfig
+const initializeCanvas = () => {
+  const canEl = document.getElementById("canvas");
+  const ctx = canEl.getContext("2d");
+  const canWd = canEl.width;
+  const canHt = canEl.height;
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canWd, canHt);
+  return { ctx, canWd, canHt };
+};
 
-and return pallet cx, cy, width, height
-and array of box cx, cy, width, height
-*/
+const generateBoxes = (res) => {
+  let [pX, pY, bMax, bMin, minCols, maxRows, maxCols, minRows] = res;
 
-
-const drawConfig = () => {
-  console.log("drawing configuration");
-  let canvasElement = document.getElementById("canvas");
-  let ctx = canvasElement.getContext("2d");
-  let canvasWidth = canvasElement.width;
-  let canvasHeight = canvasElement.height;
-
-  // draw canvas linear gradent of white to gray at 30 degrees
-  let gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-  gradient.addColorStop(0, "white");
-  gradient.addColorStop(1, "gray");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-  // create array of box cx, cy, width, height using real values before scaling
-  let boxes = [
-    {
-      // pallet
-      cx: mostEfficientConfig[0] / 2,
-      cy: mostEfficientConfig[1] / 2,
-      width: mostEfficientConfig[0],
-      height: mostEfficientConfig[1],
-    }
-  ];
-  for (let i = 0; i < mostEfficientConfig[4]; i++) {
-    for (let j = 0; j < mostEfficientConfig[5]; j++) {
-      let box = {
-        cx: i * boxLength + boxLength / 2,
-        cy: j * boxWidth + boxWidth / 2,
-        width: boxLength,
-        height: boxWidth,
-      };
-      boxes.push(box);
-    }
-  }
+  const boxes = [];
   
-  let offsetX = mostEfficientConfig[4] * boxLength;  // The total width of the first set of boxes
-  
-  for (let i = 0; i < mostEfficientConfig[6]; i++) {
-    for (let j = 0; j < mostEfficientConfig[7]; j++) {
-      let box = {
-        cx: i * boxWidth + boxWidth / 2 + offsetX,  // Offset the x-coordinate for the rotated boxes
-        cy: j * boxLength + boxLength / 2,
-        width: boxWidth,
-        height: boxLength,
-      };
-      boxes.push(box);
+  // Draw the pallet outline
+  boxes.push({
+    cx: pX / 2,
+    cy: pY / 2,
+    width: pX,
+    height: pY,
+  });
+
+  // Calculate offsets for centering each set of boxes
+  const minColYOffset = (pY - maxRows * bMax) / 2;
+  const maxColXOffset = minCols * bMin;
+  const maxColYOffset = (pY - minRows * bMin) / 2;
+
+  // Generate boxes for the first configuration (minCols x maxRows)
+  for (let i = 0; i < minCols; i++) {
+    for (let j = 0; j < maxRows; j++) {
+      boxes.push({
+        cx: i * bMin + bMin / 2,
+        cy: j * bMax + bMax / 2 + minColYOffset,
+        width: bMin,
+        height: bMax,
+      });
     }
   }
 
-  // scale boxes to fit canvas
-  let scale = Math.min(
-    canvasWidth / mostEfficientConfig[0],
-    canvasHeight / mostEfficientConfig[1]
-  );
-  boxes.forEach((box) => {
-    box.cx *= scale;
-    box.cy *= scale;
+  // Generate boxes for the second configuration (maxCols x minRows)
+  for (let i = 0; i < maxCols; i++) {
+    for (let j = 0; j < minRows; j++) {
+      boxes.push({
+        cx: i * bMax + bMax / 2 + maxColXOffset,
+        cy: j * bMin + bMin / 2 + maxColYOffset,
+        width: bMax,
+        height: bMin,
+      });
+    }
+  }
+
+  console.log("Adjusted Boxes:", JSON.stringify(boxes, null, 2));
+  return boxes;
+};
+
+const scaleAndCenterBoxes = (boxes, res, canWd, canHt) => {
+  const [pX, pY] = res;
+  const scale = Math.min((canWd * 0.9) / pX, (canHt * 0.9) / pY);
+  const offsetX = (canWd - pX * scale) / 2;
+  const offsetY = (canHt - pY * scale) / 2;
+
+  // Create a deep copy of the boxes array to avoid modifying the original
+  const scaledBoxes = boxes.map(box => ({ ...box }));
+
+  scaledBoxes.forEach((box) => {
+    box.cx = box.cx * scale + offsetX;
+    box.cy = box.cy * scale + offsetY;
     box.width *= scale;
     box.height *= scale;
   });
 
-  // draw boxes
+  return scaledBoxes; // Return the new scaled boxes array
+};
 
-  boxes.forEach((box, i) => {
-    ctx.fillStyle = i ? "tan" : "brown";
-    ctx.fillRect(
-      box.cx - box.width / 2,
-      box.cy - box.height / 2,
-      box.width,
-      box.height
-    );
-    ctx.strokeStyle = "black";
-    ctx.strokeRect(
-      box.cx - box.width / 2,
-      box.cy - box.height / 2,
-      box.width,
-      box.height
-    );
-  });
-
-  console.log("boxes array created:", boxes);
+const drawBoxes = (ctx, boxes) => {
+  const img = new Image();
+  img.src = "pallet.png";
+  img.onload = function () {
+    boxes.forEach((box, i) => {
+      if (i === 0) {
+        ctx.drawImage(
+          img,
+          box.cx - box.width / 2,
+          box.cy - box.height / 2,
+          box.width,
+          box.height
+        );
+      } else {
+        ctx.fillStyle = "tan";
+        ctx.fillRect(
+          box.cx - box.width / 2,
+          box.cy - box.height / 2,
+          box.width,
+          box.height
+        );
+        ctx.strokeStyle = "black";
+        ctx.strokeRect(
+          box.cx - box.width / 2,
+          box.cy - box.height / 2,
+          box.width,
+          box.height
+        );
+      }
+    });
+  };
 };

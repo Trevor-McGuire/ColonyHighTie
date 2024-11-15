@@ -1,21 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>High & Tie</title>
-</head>
-<body>
-  <input type="number" id="pallet-length" value="40" min="1">
-  <input type="number" id="pallet-width" value="48" min="1">
-
-  <input type="number" id="box-length" value="10" min="1">
-  <input type="number" id="box-width" value="10" min="1">
-
-  <button id="submit">Calculate</button>
-
-  <canvas id="canvas" width="400" height="400" style="border:1px solid #000000;"></canvas>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>High & Tie</title>
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <h1>High & Tie</h1>
+    <form id="form">
+      <fieldset id="pallet">
+        <legend>Pallet</legend>
+        <label for="pallet-length">Length</label>
+        <input
+          type="number"
+          inputmode="numeric"
+          id="pallet-length"
+          value="40"
+          min="1"
+        />
+        <label for="pallet-width">Width</label>
+        <input
+          type="number"
+          inputmode="numeric"
+          id="pallet-width"
+          value="48"
+          min="1"
+        />
+      </fieldset>
+      <fieldset id="box">
+        <legend>Box</legend>
+        <label for="box-length">Length</label>
+        <input
+          type="number"
+          inputmode="numeric"
+          id="box-length"
+          value="10"
+          min="1"
+        />
+        <label for="box-width">Width</label>
+        <input
+          type="number"
+          inputmode="numeric"
+          id="box-width"
+          value="10"
+          min="1"
+        />
+      </fieldset>
+      <button id="submit">Calculate</button>
+    </form>
+    <canvas
+      id="canvas"
+      width="400"
+      height="300"
+    ></canvas>
+  </body>
   <script src="main.js"></script>
-</body>
 </html>
