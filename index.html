@@ -15,6 +15,8 @@
       <fieldset id="pallet">
         <legend>Pallet</legend>
         <label for="pallet-length">Length</label>
+        <label for="pallet-width">Width</label>
+        <label for="pallet-height">Height</label>
         <input
           type="number"
           inputmode="numeric"
@@ -22,7 +24,7 @@
           value="40"
           min="1"
         />
-        <label for="pallet-width">Width</label>
+
         <input
           type="number"
           inputmode="numeric"
@@ -30,10 +32,20 @@
           value="48"
           min="1"
         />
+
+        <input
+          type="number"
+          inputmode="numeric"
+          id="pallet-height"
+          value="38"
+          min="1"
+        />
       </fieldset>
       <fieldset id="box">
         <legend>Box</legend>
         <label for="box-length">Length</label>
+        <label for="box-width">Width</label>
+        <label for="box-height">Height</label>
         <input
           type="number"
           inputmode="numeric"
@@ -41,7 +53,7 @@
           value="10"
           min="1"
         />
-        <label for="box-width">Width</label>
+
         <input
           type="number"
           inputmode="numeric"
@@ -49,9 +61,27 @@
           value="10"
           min="1"
         />
+
+        <input
+          type="number"
+          inputmode="numeric"
+          id="box-height"
+          value="10"
+          min="1"
+        />
       </fieldset>
       <button id="submit">Calculate</button>
     </form>
+    <div id="result">
+      HIGH: <span id="high">0</span>
+      TIE: <span id="tie">0</span>
+      TOTAL: <span id="total">0</span><br />
+      </div>
+      <div id="result">
+      Utilization: 
+      <span id="area">0%</span> Area
+      <span id="volume">0%</span> Volume
+    </div>
     <canvas id="canvas" width="400" height="300"></canvas>
   </body>
   <script src="main.js"></script>

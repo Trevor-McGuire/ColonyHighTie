@@ -15,18 +15,21 @@ function main(e) {
 
   const scaledBoxes = scaleAndCenterBoxes(boxes, res, canWd, canHt);
   drawBoxes(ctx, scaledBoxes);
+  updateHTT(res, inputs);
 }
 
 function getInputs() {
   let pLen = document.getElementById("pallet-length").value;
   let pWid = document.getElementById("pallet-width").value;
+  let pHt = document.getElementById("pallet-height").value;
   let bLen = document.getElementById("box-length").value;
   let bWid = document.getElementById("box-width").value;
+  let bHt = document.getElementById("box-height").value;
   if (pLen <= 0) pLen = 1;
   if (pWid <= 0) pWid = 1;
   if (bLen <= 0) bLen = 1;
   if (bLen <= 0) bLen = 1;
-  return { pLen, pWid, bLen, bWid };
+  return { pLen, pWid, pHt, bLen, bWid, bHt };
 }
 
 const populateMatrix = ({ pLen, pWid, bLen, bWid }) => {
@@ -115,12 +118,13 @@ const generateBoxes = (res) => {
   const minColYOffset = (pY - maxRows * bMax) / 2;
   const maxColXOffset = minCols * bMin;
   const maxColYOffset = (pY - minRows * bMin) / 2;
+  const allXOffset = (pX - maxCols * bMax - minCols * bMin) / 2;
 
   // Generate boxes for the first configuration (minCols x maxRows)
   for (let i = 0; i < minCols; i++) {
     for (let j = 0; j < maxRows; j++) {
       boxes.push({
-        cx: i * bMin + bMin / 2,
+        cx: i * bMin + bMin / 2 + allXOffset,
         cy: j * bMax + bMax / 2 + minColYOffset,
         width: bMin,
         height: bMax,
@@ -132,7 +136,7 @@ const generateBoxes = (res) => {
   for (let i = 0; i < maxCols; i++) {
     for (let j = 0; j < minRows; j++) {
       boxes.push({
-        cx: i * bMax + bMax / 2 + maxColXOffset,
+        cx: i * bMax + bMax / 2 + maxColXOffset + allXOffset,
         cy: j * bMin + bMin / 2 + maxColYOffset,
         width: bMax,
         height: bMin,
@@ -164,58 +168,57 @@ const scaleAndCenterBoxes = (boxes, res, canWd, canHt) => {
 };
 
 const drawBoxes = (ctx, boxes) => {
-  const img = new Image();
-  img.src = "pallet.png";
-  img.onload = function () {
-    boxes.forEach((box, i) => {
-      if (i === 0) {
-        ctx.drawImage(
-          img,
-          box.cx - box.width / 2,
-          box.cy - box.height / 2,
-          box.width,
-          box.height
-        );
-      } else {
-        ctx.fillStyle = "tan";
-        ctx.fillRect(
-          box.cx - box.width / 2,
-          box.cy - box.height / 2,
-          box.width,
-          box.height
-        );
-        ctx.strokeStyle = "black";
-        ctx.strokeRect(
-          box.cx - box.width / 2,
-          box.cy - box.height / 2,
-          box.width,
-          box.height
-        );
-      }
-    });
-  };
-};
-
-function adjustForControlPanel() {
-  const canvas = document.getElementById("canvas");
-  const windowHeight = window.innerHeight;
-  const documentHeight = document.documentElement.clientHeight;
+  const palletImage = new Image();
+  const boxImage = new Image();
   
-  // We assume the control panel appears only if windowHeight is smaller than documentHeight
-  const controlPanelHeight = documentHeight - windowHeight;
-
-  // Add margin if control panel height is greater than 0
-  if (controlPanelHeight > 0) {
-    canvas.style.marginBottom = controlPanelHeight + "px";
-    canvas.style.border = "1px solid black";  // Confirm if margin is working
-  } else {
-    canvas.style.marginBottom = "0px";
-    canvas.style.border = "1px solid red";  // Use red border for debugging
-  }
-}
-
-window.addEventListener("load", adjustForControlPanel);
-window.addEventListener("resize", adjustForControlPanel);
+  // Load the pallet image
+  palletImage.src = "pallet.png";
+  
+  // Load the box image
+  boxImage.src = "box.png";
+  
+  // Wait for both images to be loaded
+  let imagesLoaded = 0;
+  const totalImages = 2; // We have two images (pallet and box)
+  
+  const checkImagesLoaded = () => {
+    imagesLoaded++;
+    if (imagesLoaded === totalImages) {
+      // Both images are loaded, now we can draw
+      boxes.forEach((box, i) => {
+        if (i === 0) {
+          ctx.drawImage(
+            palletImage,
+            box.cx - box.width / 2,
+            box.cy - box.height / 2,
+            box.width,
+            box.height
+          );
+        } else {
+          ctx.drawImage(
+            boxImage,
+            box.cx - box.width / 2,
+            box.cy - box.height / 2,
+            box.width,
+            box.height
+          );
+          ctx.strokeStyle = "maroon";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(
+            box.cx - box.width / 2,
+            box.cy - box.height / 2,
+            box.width,
+            box.height
+          );
+        }
+      });
+    }
+  };
+  
+  // Set the onload event for both images
+  palletImage.onload = checkImagesLoaded;
+  boxImage.onload = checkImagesLoaded;
+};
 
 function resizeCanvas() {
   const canvas = document.getElementById('canvas');
@@ -231,3 +234,24 @@ function resizeCanvas() {
 
 window.addEventListener('load', resizeCanvas);
 window.addEventListener('resize', resizeCanvas);
+
+function updateHTT(res, { pLen, pWid, pHt, bLen, bWid, bHt }) {
+  let highEl = document.getElementById("high");
+  let tieEl = document.getElementById("tie");
+  let totalEl = document.getElementById("total");
+  let areaEl = document.getElementById("area");
+  let volEl = document.getElementById("volume");
+
+  let high = Math.floor(pHt / bHt);
+  let tie = res[8];
+  let total = high * tie;
+  let utilizationArea = (bWid * bLen*tie)/ (pWid * pLen) * 100;
+  let utilizationVolume = (bWid * bLen * bHt*total)/ (pWid * pLen * pHt) * 100; 
+
+  highEl.innerHTML = high;
+  tieEl.innerHTML = tie;
+  totalEl.innerHTML = total;
+  areaEl.innerHTML = utilizationArea.toFixed(0)+"%";
+  volEl.innerHTML = utilizationVolume.toFixed(0)+"%";
+
+}
