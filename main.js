@@ -1,8 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("pallet-length").addEventListener("input", main);
-  document.getElementById("pallet-width").addEventListener("input", main);
-  document.getElementById("box-length").addEventListener("input", main);
-  document.getElementById("box-width").addEventListener("input", main);
   document.getElementById("submit").addEventListener("click", main);
 });
 
