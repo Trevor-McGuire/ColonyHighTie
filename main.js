@@ -197,36 +197,51 @@ const drawBoxes = (ctx, boxes) => {
 };
 
 function adjustForControlPanel() {
-  // get canvas element
+  // Get canvas element
   const canvas = document.getElementById("canvas");
+  
+  // Check for visualViewport support
+  if (window.visualViewport) {
+    const totalHeight = document.documentElement.clientHeight;
+    const visualHeight = window.visualViewport.height;  // This should give the visible area
+    const controlPanelHeight = totalHeight - visualHeight;
 
-  // Use visualViewport.height on mobile for better accuracy
-  const totalHeight = document.documentElement.clientHeight;
-  const visibleHeight = window.innerHeight;
-  const controlPanelHeight = totalHeight - visibleHeight;
+    console.log("totalHeight:", totalHeight);
+    console.log("visualViewport.height:", visualHeight);
+    console.log("controlPanelHeight:", controlPanelHeight);
 
-  // For mobile browsers, use visualViewport.height to better detect visible area
-  const mobileVisibleHeight = window.visualViewport ? window.visualViewport.height : visibleHeight;
-  const mobileControlPanelHeight = totalHeight - mobileVisibleHeight;
-
-  console.log("totalHeight:", totalHeight);
-  console.log("visibleHeight:", visibleHeight);
-  console.log("controlPanelHeight:", controlPanelHeight);
-  console.log("mobileVisibleHeight:", mobileVisibleHeight);
-  console.log("mobileControlPanelHeight:", mobileControlPanelHeight);
-
-  // Apply margin based on the correct height detection
-  const finalControlPanelHeight = mobileControlPanelHeight > 0 ? mobileControlPanelHeight : controlPanelHeight;
-
-  if (finalControlPanelHeight > 0) {
-    canvas.style.marginBottom = finalControlPanelHeight + "px";
-    canvas.style.border = "1px solid black";
+    if (controlPanelHeight > 0) {
+      // Adjust the canvas margin bottom to match the control panel height
+      canvas.style.marginBottom = controlPanelHeight + "px";
+      canvas.style.border = "1px solid black";
+    } else {
+      canvas.style.marginBottom = "0px";
+      canvas.style.border = '1px solid red';
+    }
   } else {
-    canvas.style.marginBottom = "0px";
-    canvas.style.border = '1px solid red';
+    console.log("visualViewport not available, using window.innerHeight");
+    const totalHeight = document.documentElement.clientHeight;
+    const visibleHeight = window.innerHeight; // Use window.innerHeight as fallback
+    const controlPanelHeight = totalHeight - visibleHeight;
+    console.log("totalHeight:", totalHeight);
+    console.log("visibleHeight:", visibleHeight);
+    console.log("controlPanelHeight:", controlPanelHeight);
+    
+    // Apply margin if control panel height detected
+    if (controlPanelHeight > 0) {
+      canvas.style.marginBottom = controlPanelHeight + "px";
+      canvas.style.border = "1px solid black";
+    } else {
+      canvas.style.marginBottom = "0px";
+      canvas.style.border = '1px solid red';
+    }
   }
 }
 
 window.addEventListener("load", adjustForControlPanel);
 window.addEventListener("resize", adjustForControlPanel);
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', adjustForControlPanel);
+}
 
