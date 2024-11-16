@@ -17,6 +17,8 @@ body {
   flex-direction: column;
   height: 100dvh;
   box-sizing: border-box;
+  max-width: 600px;
+  margin: 0 auto;
 }
 h1 {
   font-size: 1.5em;
@@ -35,7 +37,6 @@ form {
   background: #fff;
   display: flex;
   flex-wrap: wrap;
-  max-width: 600px;
 }
 fieldset {
   border: 1px solid #ccc;
@@ -122,9 +123,8 @@ canvas {
     font-weight: bold;
     color: #333;
     background-color: white;
-    /* make min width enough for 3 chars */
     min-width: 3em;
-    text-align: center;
+    text-align: left;
 }
 
 
